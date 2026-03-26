@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NZSL Connection + Wordle Game</title>
+<style>
+/* GENERAL STYLES */
+body {
+  font-family: Arial, sans-serif;
+  background: #f9f9f9;
+  color: #222;
+  text-align: center;
+  margin: 0;
+  padding: 20px;
+}
+
+/* MODE TOGGLE */
+.mode-toggle button {
+  margin: 5px;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+/* CONNECTIONS GRID */
+.connections-grid {
+  display: grid;
+  gap: 20px;
+  justify-content: center;
+  margin: 20px auto;
+}
+.tile {
+  width: 120px;
+  height: 120px;
+  border: 4px solid #333;
+  border-radius: 12px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.tile-img {
+  width: 80%;
+}
+
+/* GROUP COLORS */
+.correct-group-1 { background: #d4edda; }
+.correct-group-2 { background: #cce5ff; }
+.correct-group-3 { background: #fff3cd; }
+.correct-group-4 { background: #f8d7da; }
+
+/* WORDLE */
+.wordle-container {
+  display: flex;
+  gap: 40px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+#grid {
+  display: grid;
+  gap: 10px;
+}
+.tile-wordle {
+  width: 80px;
+  height: 80px;
+  border: 3px solid #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+#word-bank {
+  display: grid;
+  grid-template-columns: repeat(2, 120px);
+  gap: 15px;
+}
+.word-option {
+  border: 3px solid #444;
+  padding: 10px;
+  cursor: pointer;
+  text-align: center;
+}
+.word-option img, .word-option video {
+  width: 100%;
+  border-radius: 8px;
+}
+.fs-letter {
+  width: 40px;
+  height: 40px;
+  margin: 2px;
+}
+
+/* CONTROLS */
+.controls, .tile-selector {
+  margin-top: 20px;
+}
+.controls button, .tile-selector button {
+  margin: 5px;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+}
+</style>
+</head>
+<body>
+
+<h1>NZSL Connection & Wordle Game</h1>
+
+<!-- MODE TOGGLE -->
+<div class="mode-toggle">
+  <button onclick="showConnections()">Connections</button>
+  <button onclick="showWordle()">NZSL Wordle</button>
+</div>
+
+<!-- TILE NUMBER SELECTOR -->
+<div class="tile-selector">
+  <label>Tiles per round:</label>
+  <button onclick="setTileCount(12)">12</button>
+  <button onclick="setTileCount(16)">16</button>
+  <button onclick="setTileCount(20)">20</button>
+</div>
+
+<!-- CONNECTIONS BOARD -->
+<div id="connections-game">
+  <div class="connections-grid" id="connections-grid"></div>
+</div>
+
+<!-- WORDLE BOARD -->
+<div id="wordle-game" style="display:none;">
+  <h2>NZSL Wordle</h2>
+
+  <!-- Mode -->
+  <div class="modes">
+    <button onclick="setMode('support')">Visual Support</button>
+    <button onclick="setMode('visual')">Visual Only</button>
+    <button onclick="setMode('challenge')">Challenge</button>
+  </div>
+
+  <div class="wordle-container">
+    <!-- Guess Grid -->
+    <div id="grid"></div>
+
+    <!-- Word Bank -->
+    <div id="word-bank"></div>
+  </div>
+
+  <div class="controls">
+    <button onclick="giveHint()">Hint</button>
+    <button onclick="revealWord()">Reveal</button>
+    <button onclick="resetWordle()">Reset</button>
+  </div>
+</div>
+
+<script>
+// GLOBALS
+let tileCount = 16;
+let currentMode = 'support';
+let currentWord = null;
+let guessAttempts = 0;
+const maxAttempts = 6;
+
+// SAMPLE WORD BANK - REPLACE WITH YOUR NZSL IMAGES/VIDEOS
+const words = [
+  { word: "DOG", category: "animal", image: "images/dog.jpg", video: "videos/dog.mp4" },
+  { word: "CAT", category: "animal", image: "images/cat.jpg", video: "videos/cat.mp4" },
+  { word: "EAT", category: "action", image: "images/eat.jpg", video: "videos/eat.mp4" },
+  { word: "APPLE", category: "food", image: "images/apple.jpg", video: "videos/apple.mp4" }
+];
+
+// ---------------- CONNECTIONS -----------------
+function showConnections(){
+  document.getElementById('connections-game').style.display='block';
+  document.getElementById('wordle-game').style.display='none';
+  startConnections();
+}
+
+function startConnections() {
+  const grid = document.getElementById('connections-grid');
+  const gridSize = Math.sqrt(tileCount);
+  grid.style.gridTemplateColumns = `repeat(${gridSize}, 120px)`;
+  grid.innerHTML = '';
+  for (let i=0; i<tileCount; i++){
+    const tile = document.createElement('div');
+    tile.className = 'tile';
+    const item = words[i % words.length]; // loop sample words
+    tile.innerHTML = `<img src="${item.image}" class="tile-img"/>`;
+    grid.appendChild(tile);
+  }
+}
+
+// ---------------- WORDLE -----------------
+function showWordle(){
+  document.getElementById('connections-game').style.display='none';
+  document.getElementById('wordle-game').style.display='block';
+  startWordle();
+}
+
+// TILE COUNT
+function setTileCount(num){
+  tileCount = num;
+  showConnections();
+}
+
+// MODE
+function setMode(mode){
+  currentMode = mode;
+  loadWordBank();
+}
+
+// FINGERSPELLING FUNCTION
+function getFingerspelling(word){
+  return word.split("").map(letter=>{
+    return `<img src="images/fingerspelling/${letter.toUpperCase()}.jpg" class="fs-letter">`;
+  }).join('');
+}
+
+// WORDLE FUNCTIONS
+function startWordle(){
+  guessAttempts = 0;
+  currentWord = words[Math.floor(Math.random()*words.length)];
+  loadGuessGrid();
+  loadWordBank();
+}
+
+function loadGuessGrid(){
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  for(let i=0;i<maxAttempts;i++){
+    const row = document.createElement('div');
+    row.style.display='flex';
+    for(let j=0;j<currentWord.word.length;j++){
+      const tile = document.createElement('div');
+      tile.className='tile-wordle';
+      row.appendChild(tile);
+    }
+    grid.appendChild(row);
+  }
+}
+
+function loadWordBank(){
+  const bank = document.getElementById('word-bank');
+  bank.innerHTML = '';
+  words.forEach(w=>{
+    const div = document.createElement('div');
+    div.className = 'word-option';
+    if (currentMode === 'visual') {
+      div.innerHTML = `<video src="${w.video}" muted loop class="sign-video"></video>`;
+    } else {
+      div.innerHTML = `<video src="${w.video}" muted loop class="sign-video"></video>
+                       <p>${w.word}</p>`;
+    }
+    div.onmouseenter = () => div.querySelector('video').play();
+    div.onmouseleave = () => div.querySelector('video').pause();
+    div.onclick = () => selectWord(w.word);
+    bank.appendChild(div);
+  });
+}
+
+function selectWord(word){
+  const grid = document.getElementById('grid');
+  const row = grid.children[guessAttempts];
+  for(let i=0;i<word.length;i++){
+    row.children[i].innerHTML = getFingerspelling(word[i]);
+    if(word[i] === currentWord.word[i]){
+      row.children[i].style.background = '#d4edda';
+    } else if(currentWord.word.includes(word[i])){
+      row.children[i].style.background = '#fff3cd';
+    } else {
+      row.children[i].style.background = '#f8d7da';
+    }
+  }
+  guessAttempts++;
+}
+
+function giveHint(){
+  alert('Category: ' + currentWord.category);
+}
+
+function revealWord(){
+  alert('Word: ' + currentWord.word);
+}
+
+function resetWordle(){
+  startWordle();
+}
+
+// INITIAL LOAD
+startConnections();
+</script>
+
+</body>
+</html>
