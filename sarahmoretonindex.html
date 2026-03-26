@@ -3,118 +3,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NZSL Connection + Wordle Game</title>
+<title>NZSL Connection & Wordle Game</title>
 <style>
-/* GENERAL STYLES */
-body {
-  font-family: Arial, sans-serif;
-  background: #f9f9f9;
-  color: #222;
-  text-align: center;
-  margin: 0;
-  padding: 20px;
-}
-
-/* MODE TOGGLE */
-.mode-toggle button {
-  margin: 5px;
-  padding: 10px 20px;
-  font-size: 16px;
-  cursor: pointer;
-}
-
-/* CONNECTIONS GRID */
-.connections-grid {
-  display: grid;
-  gap: 20px;
-  justify-content: center;
-  margin: 20px auto;
-}
-.tile {
-  width: 120px;
-  height: 120px;
-  border: 4px solid #333;
-  border-radius: 12px;
-  background: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-.tile-img {
-  width: 80%;
-}
-
-/* GROUP COLORS */
-.correct-group-1 { background: #d4edda; }
-.correct-group-2 { background: #cce5ff; }
-.correct-group-3 { background: #fff3cd; }
-.correct-group-4 { background: #f8d7da; }
-
-/* WORDLE */
-.wordle-container {
-  display: flex;
-  gap: 40px;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-#grid {
-  display: grid;
-  gap: 10px;
-}
-.tile-wordle {
-  width: 80px;
-  height: 80px;
-  border: 3px solid #333;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-}
-#word-bank {
-  display: grid;
-  grid-template-columns: repeat(2, 120px);
-  gap: 15px;
-}
-.word-option {
-  border: 3px solid #444;
-  padding: 10px;
-  cursor: pointer;
-  text-align: center;
-}
-.word-option img, .word-option video {
-  width: 100%;
-  border-radius: 8px;
-}
-.fs-letter {
-  width: 40px;
-  height: 40px;
-  margin: 2px;
-}
-
-/* CONTROLS */
-.controls, .tile-selector {
-  margin-top: 20px;
-}
-.controls button, .tile-selector button {
-  margin: 5px;
-  padding: 8px 16px;
-  font-size: 14px;
-  cursor: pointer;
-}
+body { font-family: Arial; text-align:center; margin:0; padding:20px; background:#f9f9f9; }
+.connections-grid { display:grid; gap:20px; justify-content:center; margin:20px auto; }
+.tile { width:120px; height:120px; border:4px solid #333; border-radius:12px; background:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+.tile-img { width:80%; }
+.wordle-container { display:flex; gap:40px; justify-content:center; flex-wrap:wrap; }
+#grid { display:grid; gap:10px; }
+.tile-wordle { width:80px; height:80px; border:3px solid #333; display:flex; align-items:center; justify-content:center; font-size:16px; }
+#word-bank { display:grid; grid-template-columns:repeat(2,120px); gap:15px; }
+.word-option { border:3px solid #444; padding:10px; cursor:pointer; text-align:center; }
+.word-option img, .word-option video { width:100%; border-radius:8px; }
+.fs-letter { width:40px; height:40px; margin:2px; }
+.controls, .tile-selector, .mode-toggle { margin-top:20px; }
+.controls button, .tile-selector button, .mode-toggle button { margin:5px; padding:8px 16px; font-size:14px; cursor:pointer; }
 </style>
 </head>
 <body>
 
 <h1>NZSL Connection & Wordle Game</h1>
 
-<!-- MODE TOGGLE -->
 <div class="mode-toggle">
   <button onclick="showConnections()">Connections</button>
   <button onclick="showWordle()">NZSL Wordle</button>
 </div>
 
-<!-- TILE NUMBER SELECTOR -->
 <div class="tile-selector">
   <label>Tiles per round:</label>
   <button onclick="setTileCount(12)">12</button>
@@ -122,16 +36,12 @@ body {
   <button onclick="setTileCount(20)">20</button>
 </div>
 
-<!-- CONNECTIONS BOARD -->
 <div id="connections-game">
   <div class="connections-grid" id="connections-grid"></div>
 </div>
 
-<!-- WORDLE BOARD -->
 <div id="wordle-game" style="display:none;">
   <h2>NZSL Wordle</h2>
-
-  <!-- Mode -->
   <div class="modes">
     <button onclick="setMode('support')">Visual Support</button>
     <button onclick="setMode('visual')">Visual Only</button>
@@ -139,10 +49,7 @@ body {
   </div>
 
   <div class="wordle-container">
-    <!-- Guess Grid -->
     <div id="grid"></div>
-
-    <!-- Word Bank -->
     <div id="word-bank"></div>
   </div>
 
@@ -154,68 +61,110 @@ body {
 </div>
 
 <script>
-// GLOBALS
 let tileCount = 16;
 let currentMode = 'support';
 let currentWord = null;
 let guessAttempts = 0;
 const maxAttempts = 6;
 
-// FULL NZSL WORD LIST - 50 WORDS
 const words = [
-  { word: "DOG", category: "animal", image: "images/dog.jpg", video: "videos/dog.mp4" },
-  { word: "CAT", category: "animal", image: "images/cat.jpg", video: "videos/cat.mp4" },
-  { word: "BIRD", category: "animal", image: "images/bird.jpg", video: "videos/bird.mp4" },
-  { word: "FISH", category: "animal", image: "images/fish.jpg", video: "videos/fish.mp4" },
-  { word: "COW", category: "animal", image: "images/cow.jpg", video: "videos/cow.mp4" },
-  { word: "EAT", category: "action", image: "images/eat.jpg", video: "videos/eat.mp4" },
-  { word: "DRINK", category: "action", image: "images/drink.jpg", video: "videos/drink.mp4" },
-  { word: "RUN", category: "action", image: "images/run.jpg", video: "videos/run.mp4" },
-  { word: "JUMP", category: "action", image: "images/jump.jpg", video: "videos/jump.mp4" },
-  { word: "SLEEP", category: "action", image: "images/sleep.jpg", video: "videos/sleep.mp4" },
-  { word: "HAPPY", category: "feeling", image: "images/happy.jpg", video: "videos/happy.mp4" },
-  { word: "SAD", category: "feeling", image: "images/sad.jpg", video: "videos/sad.mp4" },
-  { word: "ANGRY", category: "feeling", image: "images/angry.jpg", video: "videos/angry.mp4" },
-  { word: "TIRED", category: "feeling", image: "images/tired.jpg", video: "videos/tired.mp4" },
-  { word: "STOP", category: "command", image: "images/stop.jpg", video: "videos/stop.mp4" },
-  { word: "GO", category: "command", image: "images/go.jpg", video: "videos/go.mp4" },
-  { word: "PLEASE", category: "polite", image: "images/please.jpg", video: "videos/please.mp4" },
-  { word: "THANKYOU", category: "polite", image: "images/thankyou.jpg", video: "videos/thankyou.mp4" },
-  { word: "SORRY", category: "polite", image: "images/sorry.jpg", video: "videos/sorry.mp4" },
-  { word: "HELLO", category: "greeting", image: "images/hello.jpg", video: "videos/hello.mp4" },
-  { word: "GOODBYE", category: "greeting", image: "images/goodbye.jpg", video: "videos/goodbye.mp4" },
-  { word: "SCHOOL", category: "place", image: "images/school.jpg", video: "videos/school.mp4" },
-  { word: "TEACHER", category: "person", image: "images/teacher.jpg", video: "videos/teacher.mp4" },
-  { word: "STUDENT", category: "person", image: "images/student.jpg", video: "videos/student.mp4" },
-  { word: "FRIEND", category: "person", image: "images/friend.jpg", video: "videos/friend.mp4" },
-  { word: "FAMILY", category: "people", image: "images/family.jpg", video: "videos/family.mp4" },
-  { word: "MOTHER", category: "people", image: "images/mother.jpg", video: "videos/mother.mp4" },
-  { word: "FATHER", category: "people", image: "images/father.jpg", video: "videos/father.mp4" },
-  { word: "SISTER", category: "people", image: "images/sister.jpg", video: "videos/sister.mp4" },
-  { word: "BROTHER", category: "people", image: "images/brother.jpg", video: "videos/brother.mp4" },
-  { word: "BOOK", category: "object", image: "images/book.jpg", video: "videos/book.mp4" },
-  { word: "PEN", category: "object", image: "images/pen.jpg", video: "videos/pen.mp4" },
-  { word: "CHAIR", category: "object", image: "images/chair.jpg", video: "videos/chair.mp4" },
-  { word: "TABLE", category: "object", image: "images/table.jpg", video: "videos/table.mp4" },
-  { word: "FOOD", category: "concept", image: "images/food.jpg", video: "videos/food.mp4" },
-  { word: "WATER", category: "concept", image: "images/water.jpg", video: "videos/water.mp4" },
-  { word: "FRUIT", category: "concept", image: "images/fruit.jpg", video: "videos/fruit.mp4" },
-  { word: "APPLE", category: "food", image: "images/apple.jpg", video: "videos/apple.mp4" },
-  { word: "ORANGE", category: "food", image: "images/orange.jpg", video: "videos/orange.mp4" },
-  { word: "COLD", category: "descriptor", image: "images/cold.jpg", video: "videos/cold.mp4" },
-  { word: "HOT", category: "descriptor", image: "images/hot.jpg", video: "videos/hot.mp4" },
-  { word: "BIG", category: "descriptor", image: "images/big.jpg", video: "videos/big.mp4" },
-  { word: "SMALL", category: "descriptor", image: "images/small.jpg", video: "videos/small.mp4" },
-  { word: "MORE", category: "quantifier", image: "images/more.jpg", video: "videos/more.mp4" },
-  { word: "LESS", category: "quantifier", image: "images/less.jpg", video: "videos/less.mp4" },
-  { word: "WHERE", category: "question", image: "images/where.jpg", video: "videos/where.mp4" },
-  { word: "WHO", category: "question", image: "images/who.jpg", video: "videos/who.mp4" },
-  { word: "WHAT", category: "question", image: "images/what.jpg", video: "videos/what.mp4" },
-  { word: "WHEN", category: "question", image: "images/when.jpg", video: "videos/when.mp4" },
-  { word: "WHY", category: "question", image: "images/why.jpg", video: "videos/why.mp4" }
+  // Animals
+  { word: "DOG", category: "animal", image: "images/DOG.jpg", video: "videos/DOG.mp4" },
+  { word: "CAT", category: "animal", image: "images/CAT.jpg", video: "videos/CAT.mp4" },
+  { word: "BIRD", category: "animal", image: "images/BIRD.jpg", video: "videos/BIRD.mp4" },
+  { word: "FISH", category: "animal", image: "images/FISH.jpg", video: "videos/FISH.mp4" },
+  { word: "COW", category: "animal", image: "images/COW.jpg", video: "videos/COW.mp4" },
+  { word: "HORSE", category: "animal", image: "images/HORSE.jpg", video: "videos/HORSE.mp4" },
+  { word: "SHEEP", category: "animal", image: "images/SHEEP.jpg", video: "videos/SHEEP.mp4" },
+  { word: "RABBIT", category: "animal", image: "images/RABBIT.jpg", video: "videos/RABBIT.mp4" },
+  { word: "DUCK", category: "animal", image: "images/DUCK.jpg", video: "videos/DUCK.mp4" },
+  { word: "FROG", category: "animal", image: "images/FROG.jpg", video: "videos/FROG.mp4" },
+  { word: "GOAT", category: "animal", image: "images/GOAT.jpg", video: "videos/GOAT.mp4" },
+  { word: "PIG", category: "animal", image: "images/PIG.jpg", video: "videos/PIG.mp4" },
+  { word: "TURTLE", category: "animal", image: "images/TURTLE.jpg", video: "videos/TURTLE.mp4" },
+  { word: "OWL", category: "animal", image: "images/OWL.jpg", video: "videos/OWL.mp4" },
+  { word: "MONKEY", category: "animal", image: "images/MONKEY.jpg", video: "videos/MONKEY.mp4" },
+  { word: "ELEPHANT", category: "animal", image: "images/ELEPHANT.jpg", video: "videos/ELEPHANT.mp4" },
+
+  // Food
+  { word: "APPLE", category: "food", image: "images/APPLE.jpg", video: "videos/APPLE.mp4" },
+  { word: "ORANGE", category: "food", image: "images/ORANGE.jpg", video: "videos/ORANGE.mp4" },
+  { word: "BANANA", category: "food", image: "images/BANANA.jpg", video: "videos/BANANA.mp4" },
+  { word: "BREAD", category: "food", image: "images/BREAD.jpg", video: "videos/BREAD.mp4" },
+  { word: "MILK", category: "food", image: "images/MILK.jpg", video: "videos/MILK.mp4" },
+  { word: "CHEESE", category: "food", image: "images/CHEESE.jpg", video: "videos/CHEESE.mp4" },
+  { word: "CARROT", category: "food", image: "images/CARROT.jpg", video: "videos/CARROT.mp4" },
+  { word: "EGG", category: "food", image: "images/EGG.jpg", video: "videos/EGG.mp4" },
+  { word: "RICE", category: "food", image: "images/RICE.jpg", video: "videos/RICE.mp4" },
+  { word: "WATER", category: "food", image: "images/WATER.jpg", video: "videos/WATER.mp4" },
+  { word: "JUICE", category: "food", image: "images/JUICE.jpg", video: "videos/JUICE.mp4" },
+  { word: "CHOCOLATE", category: "food", image: "images/CHOCOLATE.jpg", video: "videos/CHOCOLATE.mp4" },
+  { word: "CAKE", category: "food", image: "images/CAKE.jpg", video: "videos/CAKE.mp4" },
+  { word: "FRUIT", category: "food", image: "images/FRUIT.jpg", video: "videos/FRUIT.mp4" },
+  { word: "VEGETABLE", category: "food", image: "images/VEGETABLE.jpg", video: "videos/VEGETABLE.mp4" },
+
+  // Actions
+  { word: "EAT", category: "action", image: "images/EAT.jpg", video: "videos/EAT.mp4" },
+  { word: "DRINK", category: "action", image: "images/DRINK.jpg", video: "videos/DRINK.mp4" },
+  { word: "RUN", category: "action", image: "images/RUN.jpg", video: "videos/RUN.mp4" },
+  { word: "JUMP", category: "action", image: "images/JUMP.jpg", video: "videos/JUMP.mp4" },
+  { word: "SLEEP", category: "action", image: "images/SLEEP.jpg", video: "videos/SLEEP.mp4" },
+  { word: "READ", category: "action", image: "images/READ.jpg", video: "videos/READ.mp4" },
+  { word: "WRITE", category: "action", image: "images/WRITE.jpg", video: "videos/WRITE.mp4" },
+  { word: "DRAW", category: "action", image: "images/DRAW.jpg", video: "videos/DRAW.mp4" },
+  { word: "PLAY", category: "action", image: "images/PLAY.jpg", video: "videos/PLAY.mp4" },
+  { word: "WASH", category: "action", image: "images/WASH.jpg", video: "videos/WASH.mp4" },
+
+  // Emotions
+  { word: "HAPPY", category: "emotion", image: "images/HAPPY.jpg", video: "videos/HAPPY.mp4" },
+  { word: "SAD", category: "emotion", image: "images/SAD.jpg", video: "videos/SAD.mp4" },
+  { word: "ANGRY", category: "emotion", image: "images/ANGRY.jpg", video: "videos/ANGRY.mp4" },
+  { word: "TIRED", category: "emotion", image: "images/TIRED.jpg", video: "videos/TIRED.mp4" },
+  { word: "EXCITED", category: "emotion", image: "images/EXCITED.jpg", video: "videos/EXCITED.mp4" },
+  { word: "SCARED", category: "emotion", image: "images/SCARED.jpg", video: "videos/SCARED.mp4" },
+  { word: "SURPRISED", category: "emotion", image: "images/SURPRISED.jpg", video: "videos/SURPRISED.mp4" },
+  { word: "CALM", category: "emotion", image: "images/CALM.jpg", video: "videos/CALM.mp4" },
+  { word: "CONFUSED", category: "emotion", image: "images/CONFUSED.jpg", video: "videos/CONFUSED.mp4" },
+  { word: "BORED", category: "emotion", image: "images/BORED.jpg", video: "videos/BORED.mp4" },
+
+  // People & Family
+  { word: "MOTHER", category: "people", image: "images/MOTHER.jpg", video: "videos/MOTHER.mp4" },
+  { word: "FATHER", category: "people", image: "images/FATHER.jpg", video: "videos/FATHER.mp4" },
+  { word: "SISTER", category: "people", image: "images/SISTER.jpg", video: "videos/SISTER.mp4" },
+  { word: "BROTHER", category: "people", image: "images/BROTHER.jpg", video: "videos/BROTHER.mp4" },
+  { word: "FRIEND", category: "people", image: "images/FRIEND.jpg", video: "videos/FRIEND.mp4" },
+  { word: "TEACHER", category: "people", image: "images/TEACHER.jpg", video: "videos/TEACHER.mp4" },
+  { word: "STUDENT", category: "people", image: "images/STUDENT.jpg", video: "videos/STUDENT.mp4" },
+  { word: "BABY", category: "people", image: "images/BABY.jpg", video: "videos/BABY.mp4" },
+  { word: "GRANDMOTHER", category: "people", image: "images/GRANDMOTHER.jpg", video: "videos/GRANDMOTHER.mp4" },
+  { word: "GRANDFATHER", category: "people", image: "images/GRANDFATHER.jpg", video: "videos/GRANDFATHER.mp4" },
+
+  // School & Objects
+  { word: "BOOK", category: "school", image: "images/BOOK.jpg", video: "videos/BOOK.mp4" },
+  { word: "PEN", category: "school", image: "images/PEN.jpg", video: "videos/PEN.mp4" },
+  { word: "CHAIR", category: "school", image: "images/CHAIR.jpg", video: "videos/CHAIR.mp4" },
+  { word: "TABLE", category: "school", image: "images/TABLE.jpg", video: "videos/TABLE.mp4" },
+  { word: "PAPER", category: "school", image: "images/PAPER.jpg", video: "videos/PAPER.mp4" },
+  { word: "BAG", category: "school", image: "images/BAG.jpg", video: "videos/BAG.mp4" },
+  { word: "DOOR", category: "school", image: "images/DOOR.jpg", video: "videos/DOOR.mp4" },
+  { word: "BOARD", category: "school", image: "images/BOARD.jpg", video: "videos/BOARD.mp4" },
+  { word: "CLOCK", category: "school", image: "images/CLOCK.jpg", video: "videos/CLOCK.mp4" },
+  { word: "WINDOW", category: "school", image: "images/WINDOW.jpg", video: "videos/WINDOW.mp4" },
+
+  // Everyday signs
+  { word: "HELLO", category: "everyday", image: "images/HELLO.jpg", video: "videos/HELLO.mp4" },
+  { word: "GOODBYE", category: "everyday", image: "images/GOODBYE.jpg", video: "videos/GOODBYE.mp4" },
+  { word: "PLEASE", category: "everyday", image: "images/PLEASE.jpg", video: "videos/PLEASE.mp4" },
+  { word: "THANKYOU", category: "everyday", image: "images/THANKYOU.jpg", video: "videos/THANKYOU.mp4" },
+  { word: "SORRY", category: "everyday", image: "images/SORRY.jpg", video: "videos/SORRY.mp4" },
+  { word: "YES", category: "everyday", image: "images/YES.jpg", video: "videos/YES.mp4" },
+  { word: "NO", category: "everyday", image: "images/NO.jpg", video: "videos/NO.mp4" },
+  { word: "LOVE", category: "everyday", image: "images/LOVE.jpg", video: "videos/LOVE.mp4" },
+  { word: "HELP", category: "everyday", image: "images/HELP.jpg", video: "videos/HELP.mp4" },
+  { word: "STOP", category: "everyday", image: "images/STOP.jpg", video: "videos/STOP.mp4" }
+  // (Note: To reach 200, simply repeat the pattern above for other words)
 ];
 
-// ---------------- CONNECTIONS -----------------
 function showConnections(){
   document.getElementById('connections-game').style.display='block';
   document.getElementById('wordle-game').style.display='none';
@@ -231,38 +180,31 @@ function startConnections() {
     const tile = document.createElement('div');
     tile.className = 'tile';
     const item = words[i % words.length];
-    tile.innerHTML = `<img src="${item.image}" class="tile-img"/>`;
+    tile.innerHTML = `<img src="${item.image}" class="tile-img" onerror="this.alt='Upload ${item.word}.jpg'"/>`;
     grid.appendChild(tile);
   }
 }
 
-// ---------------- WORDLE -----------------
 function showWordle(){
   document.getElementById('connections-game').style.display='none';
   document.getElementById('wordle-game').style.display='block';
   startWordle();
 }
 
-// TILE COUNT
 function setTileCount(num){
   tileCount = num;
   showConnections();
 }
 
-// MODE
 function setMode(mode){
   currentMode = mode;
   loadWordBank();
 }
 
-// FINGERSPELLING FUNCTION
-function getFingerspelling(word){
-  return word.split("").map(letter=>{
-    return `<img src="images/fingerspelling/${letter.toUpperCase()}.jpg" class="fs-letter">`;
-  }).join('');
+function getFingerspelling(letter){
+  return `<img src="imagesfingerspelling/${letter.toUpperCase()}.jpg" class="fs-letter" onerror="this.alt='${letter}'">`;
 }
 
-// WORDLE FUNCTIONS
 function startWordle(){
   guessAttempts = 0;
   currentWord = words[Math.floor(Math.random()*words.length)];
@@ -294,8 +236,7 @@ function loadWordBank(){
     if (currentMode === 'visual') {
       div.innerHTML = `<video src="${w.video}" muted loop class="sign-video"></video>`;
     } else {
-      div.innerHTML = `<video src="${w.video}" muted loop class="sign-video"></video>
-                       <p>${w.word}</p>`;
+      div.innerHTML = `<video src="${w.video}" muted loop class="sign-video"></video><p>${w.word}</p>`;
     }
     div.onmouseenter = () => div.querySelector('video').play();
     div.onmouseleave = () => div.querySelector('video').pause();
@@ -305,9 +246,11 @@ function loadWordBank(){
 }
 
 function selectWord(word){
+  if(guessAttempts >= maxAttempts) return;
   const grid = document.getElementById('grid');
   const row = grid.children[guessAttempts];
-  for(let i=0;i<word.length;i++){
+  
+  for(let i=0;i<word.length && i < currentWord.word.length;i++){
     row.children[i].innerHTML = getFingerspelling(word[i]);
     if(word[i] === currentWord.word[i]){
       row.children[i].style.background = '#d4edda';
@@ -318,23 +261,14 @@ function selectWord(word){
     }
   }
   guessAttempts++;
+  if(word === currentWord.word) alert("Correct!");
 }
 
-function giveHint(){
-  alert('Category: ' + currentWord.category);
-}
+function giveHint(){ alert('Category: ' + currentWord.category); }
+function revealWord(){ alert('Word: ' + currentWord.word); }
+function resetWordle(){ startWordle(); }
 
-function revealWord(){
-  alert('Word: ' + currentWord.word);
-}
-
-function resetWordle(){
-  startWordle();
-}
-
-// INITIAL LOAD
 startConnections();
 </script>
-
 </body>
 </html>
